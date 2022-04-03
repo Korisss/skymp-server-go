@@ -5,14 +5,13 @@ type OnDisonnectHandler = func(user_id UserId)
 type OnCustomPacketHandler = func(user_id UserId, json_data uintptr)
 type PacketHandlerFn = func(userId UserId, data uintptr, len uint64)
 
-type ScampServer = uintptr
 type MpForm = uintptr
 type MpObjectReference = uintptr
 type MpActor = uintptr
 type FormDesc = uintptr
 
-type UserId = uint16
 type ProfileId = int
+type UserId = uint16
 type ActorFormId = uint32
 type FormId = uint32
 type Angle = float32

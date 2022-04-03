@@ -2,10 +2,11 @@ package settings
 
 import (
 	"encoding/json"
-	"log"
 	"net"
 	"net/http"
 	"os"
+
+	"github.com/sirupsen/logrus"
 )
 
 type Settings struct {
@@ -22,14 +23,14 @@ type Settings struct {
 func Load(filePath string) *Settings {
 	fileContent, err := os.ReadFile(filePath)
 	if err != nil {
-		log.Fatal(err.Error())
+		logrus.Fatal(err.Error())
 	}
 
 	var settings Settings
 
 	err = json.Unmarshal(fileContent, &settings)
 	if err != nil {
-		log.Fatal(err.Error())
+		logrus.Fatal(err.Error())
 	}
 
 	if net.ParseIP(settings.Ip) == nil {
