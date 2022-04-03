@@ -13,3 +13,10 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+# Ignore server dir
+build
+
+# Exclude Chakra and scamp_lib
+!build/ChakraCore.dll
+!build/scamp_lib.dll
