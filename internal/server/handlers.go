@@ -47,7 +47,7 @@ func (s *Server) OnWsMessage(client *websocket.Conn, msg *JsonSocketMessage) {
 
 // На момент подключения актёр ещё не доступен
 func (s *Server) onConnect(userId UserId) uintptr {
-	return uintptr(0)
+	return 0
 }
 
 // Срабатывает не сразу
@@ -56,15 +56,20 @@ func (s *Server) onDisconnect(userId UserId) uintptr {
 
 	actorId, err := s.scampServer.GetUserActor(userId)
 	if err != nil {
-		return uintptr(0)
+		return 0
 	}
 
 	s.scampServer.SetEnabled(actorId, false)
 
-	return uintptr(0)
+	return 0
 }
 
 func (s *Server) onCustomPacket(userId UserId, jsonData uintptr) uintptr {
+	test := (*interface{})(unsafe.Pointer(jsonData))
+	fmt.Println("===start===")
+	fmt.Println(*test)
+	fmt.Println("===end===")
+
 	jsonStr := C.GoString((*C.char)(unsafe.Pointer(jsonData)))
 	var data skymp_wrapper.CustomPacket
 	err := json.Unmarshal([]byte(jsonStr), &data)
@@ -72,7 +77,7 @@ func (s *Server) onCustomPacket(userId UserId, jsonData uintptr) uintptr {
 		logrus.Errorln("[Error onCustomPacket] failed to decode json")
 		logrus.Errorln(jsonData)
 		logrus.Errorln(err.Error())
-		return uintptr(0)
+		return 0
 	}
 
 	switch data.Typ {
@@ -82,13 +87,13 @@ func (s *Server) onCustomPacket(userId UserId, jsonData uintptr) uintptr {
 	case "loginWithSkympIo":
 		if data.GameData.Session == "" {
 			logrus.Errorln("Error on login")
-			return uintptr(0)
+			return 0
 		}
 
 		profileId := s.getUserProfileId(data.GameData.Session)
 		if profileId < 0 {
 			logrus.Errorln(err)
-			return uintptr(0)
+			return 0
 		}
 
 		s.profileIds[userId] = profileId
@@ -100,7 +105,7 @@ func (s *Server) onCustomPacket(userId UserId, jsonData uintptr) uintptr {
 		logrus.Errorln("invalid json data")
 	}
 
-	return uintptr(0)
+	return 0
 }
 
 func (s *Server) onSpawnAllowed(userId UserId, profileId ProfileId) {

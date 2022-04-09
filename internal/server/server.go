@@ -45,7 +45,7 @@ func NewServer(settings *settings.Settings) *Server {
 
 func testOnPacket(test1, test2, test3 uintptr) uintptr {
 	// fmt.Println("TestOnPacket")
-	return uintptr(0)
+	return 0
 }
 
 func (s *Server) Run() error {
