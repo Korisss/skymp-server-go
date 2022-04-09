@@ -29,11 +29,11 @@ type JsonClientVersion struct {
 
 //используется в on_ws_message
 type JsonSocketMessage struct {
-	Typ       string `json:"type"`
-	Token     string `json:"token"`
-	Msg       string `json:"msg"` //[raw]
-	ChannelId int    `json:"channelIdx"`
-	Text      string `json:"text"`
+	Typ       string      `json:"type"`
+	Token     string      `json:"token"`
+	MsgRaw    interface{} `json:"msg"` //[raw]
+	ChannelId int         `json:"channelIdx"`
+	Text      string      `json:"text"`
 }
 
 //используется в on_ws_message

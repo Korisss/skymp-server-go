@@ -3,6 +3,7 @@ package server
 import "C"
 import (
 	"encoding/json"
+	"fmt"
 	"unsafe"
 
 	skymp_wrapper "github.com/Korisss/skymp-server-go/internal/skymp-wrapper"
@@ -12,7 +13,8 @@ import (
 )
 
 func (s *Server) OnWsMessage(client *websocket.Conn, msg *JsonSocketMessage) {
-	logrus.Println("New ws message:", msg)
+	logrus.Println("New ws message:")
+	logrus.Printf("%+v", msg)
 
 	switch msg.Typ {
 	case "token":
@@ -23,6 +25,8 @@ func (s *Server) OnWsMessage(client *websocket.Conn, msg *JsonSocketMessage) {
 		}
 
 		userId := s.getUserIdFromToken(msg.Token)
+		fmt.Println("GET USER ID")
+		fmt.Println(userId)
 		s.wsClients[userId] = client
 	case "uiEvent":
 		userId := utils.IndexOfWsClient(s.wsClients, client)
@@ -32,26 +36,35 @@ func (s *Server) OnWsMessage(client *websocket.Conn, msg *JsonSocketMessage) {
 			return
 		}
 
-		s.onUiEvent(actorId, msg.Msg)
+		// Костыль, хз что делать с ним
+		msgJson, _ := json.Marshal(msg.MsgRaw)
+		var msg JsonUiEvent
+		json.Unmarshal(msgJson, &msg)
+
+		s.onUiEvent(actorId, msg)
 	}
 }
 
 // На момент подключения актёр ещё не доступен
-func (s *Server) onConnect(userId UserId) {}
+func (s *Server) onConnect(userId UserId) uintptr {
+	return uintptr(0)
+}
 
 // Срабатывает не сразу
-func (s *Server) onDisconnect(userId UserId) {
+func (s *Server) onDisconnect(userId UserId) uintptr {
 	s.profileIds[userId] = -1
 
 	actorId, err := s.scampServer.GetUserActor(userId)
 	if err != nil {
-		return
+		return uintptr(0)
 	}
 
 	s.scampServer.SetEnabled(actorId, false)
+
+	return uintptr(0)
 }
 
-func (s *Server) onCustomPacket(userId UserId, jsonData uintptr) {
+func (s *Server) onCustomPacket(userId UserId, jsonData uintptr) uintptr {
 	jsonStr := C.GoString((*C.char)(unsafe.Pointer(jsonData)))
 	var data skymp_wrapper.CustomPacket
 	err := json.Unmarshal([]byte(jsonStr), &data)
@@ -59,7 +72,7 @@ func (s *Server) onCustomPacket(userId UserId, jsonData uintptr) {
 		logrus.Errorln("[Error onCustomPacket] failed to decode json")
 		logrus.Errorln(jsonData)
 		logrus.Errorln(err.Error())
-		return
+		return uintptr(0)
 	}
 
 	switch data.Typ {
@@ -69,13 +82,13 @@ func (s *Server) onCustomPacket(userId UserId, jsonData uintptr) {
 	case "loginWithSkympIo":
 		if data.GameData.Session == "" {
 			logrus.Errorln("Error on login")
-			return
+			return uintptr(0)
 		}
 
 		profileId := s.getUserProfileId(data.GameData.Session)
 		if profileId < 0 {
 			logrus.Errorln(err)
-			return
+			return uintptr(0)
 		}
 
 		s.profileIds[userId] = profileId
@@ -86,6 +99,8 @@ func (s *Server) onCustomPacket(userId UserId, jsonData uintptr) {
 	default:
 		logrus.Errorln("invalid json data")
 	}
+
+	return uintptr(0)
 }
 
 func (s *Server) onSpawnAllowed(userId UserId, profileId ProfileId) {
@@ -110,15 +125,7 @@ func (s *Server) onSpawnAllowed(userId UserId, profileId ProfileId) {
 	}
 }
 
-func (s *Server) onUiEvent(formId ActorFormId, jsonData string) {
-	var data JsonUiEvent
-	err := json.Unmarshal([]byte(jsonData), &data)
-	if err != nil {
-		logrus.Errorln("error read json")
-		logrus.Errorln(err.Error())
-		return
-	}
-
+func (s *Server) onUiEvent(formId ActorFormId, data JsonUiEvent) {
 	switch data.Typ {
 	case "cef::chat:send":
 		logrus.Println("onUiEvent", data)

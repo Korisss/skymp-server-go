@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"syscall"
+	"time"
 
 	"github.com/Korisss/skymp-server-go/internal/settings"
 	skymp_wrapper "github.com/Korisss/skymp-server-go/internal/skymp-wrapper"
@@ -41,19 +43,25 @@ func NewServer(settings *settings.Settings) *Server {
 	return server
 }
 
-func (s *Server) Run() error {
-	s.scampServer.SetConnectHandler(s.onConnect)
-	s.scampServer.SetDisconnectHandler(s.onDisconnect)
-	s.scampServer.SetCustomPacketHandler(s.onCustomPacket)
+func testOnPacket(test1, test2, test3 uintptr) uintptr {
+	// fmt.Println("TestOnPacket")
+	return uintptr(0)
+}
 
-	// svr.set_packet_handler(
-	// 	fn(user_id UserId, data byteptr, len usize) {
-	// 		transform_packet_into_action(user_id, data, len) or {
-	// 			eprintln(err)
-	// 			return
-	// 		}
-	// 	}
-	// )
+func (s *Server) Run() error {
+	s.scampServer.SetConnectHandler(syscall.NewCallback(s.onConnect))
+	s.scampServer.SetDisconnectHandler(syscall.NewCallback(s.onDisconnect))
+	s.scampServer.SetCustomPacketHandler(syscall.NewCallback(s.onCustomPacket))
+	s.scampServer.SetPacketHandler(syscall.NewCallback(testOnPacket))
+
+	s.scampServer.AttachSaveStorage()
+
+	go func() {
+		for {
+			s.scampServer.Tick()
+			time.Sleep(1000)
+		}
+	}()
 
 	errChan := make(chan error, 1)
 
@@ -87,11 +95,11 @@ func (s *Server) getUserIdFromToken(token string) UserId {
 func (s *Server) getUserProfileId(session string) ProfileId {
 	url := s.endpoint + "/sessions/" + session
 	resp, err := http.Get(url)
-	defer resp.Body.Close()
 	if err != nil || resp.StatusCode != http.StatusOK {
 		logrus.Errorln("Error when get id from session")
 		return -1
 	}
+	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {

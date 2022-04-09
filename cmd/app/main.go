@@ -17,6 +17,7 @@ import (
 )
 
 func main() {
+	logrus.SetFormatter(&logrus.TextFormatter{})
 	gin.SetMode(gin.ReleaseMode)
 
 	settings := settings.Load("./server-settings.json")

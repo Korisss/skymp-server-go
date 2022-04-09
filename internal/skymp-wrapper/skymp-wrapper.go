@@ -15,10 +15,13 @@ var (
 	setConnectHandlerProc, _      = syscall.GetProcAddress(scampLib, "SetConnectHandler")
 	setDisconnectHandlerProc, _   = syscall.GetProcAddress(scampLib, "SetDisconnectHandler")
 	setCustomPacketHandlerProc, _ = syscall.GetProcAddress(scampLib, "SetCustomPacketHandler")
+	setPacketHandlerProc, _       = syscall.GetProcAddress(scampLib, "SetPacketHandler")
 	getActorsByProfileIdProc, _   = syscall.GetProcAddress(scampLib, "GetActorsByProfileId")
 	setUserActorProc, _           = syscall.GetProcAddress(scampLib, "SetUserActor")
 	createActorProc, _            = syscall.GetProcAddress(scampLib, "CreateActor")
 	setRaceMenuOpenProc, _        = syscall.GetProcAddress(scampLib, "SetRaceMenuOpen")
+	attachSaveStorageProc, _      = syscall.GetProcAddress(scampLib, "AttachSaveStorage")
+	tickProc, _                   = syscall.GetProcAddress(scampLib, "Tick")
 )
 
 type ScampServer struct {
@@ -75,14 +78,26 @@ func (server ScampServer) SetEnabled(actorId ActorFormId, enabled bool) {
 	syscall.SyscallN(uintptr(setEnabledProc), server.ptr, uintptr(actorId), uintptr(unsafe.Pointer(&enabled)))
 }
 
-func (server ScampServer) SetConnectHandler(handler OnConnectHandler) {
-	syscall.SyscallN(uintptr(setConnectHandlerProc), server.ptr, uintptr(unsafe.Pointer(&handler)))
+func (server ScampServer) SetConnectHandler(handler uintptr) {
+	syscall.SyscallN(uintptr(setConnectHandlerProc), server.ptr, handler)
 }
 
-func (server ScampServer) SetDisconnectHandler(handler OnDisonnectHandler) {
-	syscall.SyscallN(uintptr(setDisconnectHandlerProc), server.ptr, uintptr(unsafe.Pointer(&handler)))
+func (server ScampServer) SetDisconnectHandler(handler uintptr) {
+	syscall.SyscallN(uintptr(setDisconnectHandlerProc), server.ptr, handler)
 }
 
-func (server ScampServer) SetCustomPacketHandler(handler OnCustomPacketHandler) {
-	syscall.SyscallN(uintptr(setCustomPacketHandlerProc), server.ptr, uintptr(unsafe.Pointer(&handler)))
+func (server ScampServer) SetCustomPacketHandler(handler uintptr) {
+	syscall.SyscallN(uintptr(setCustomPacketHandlerProc), server.ptr, handler)
+}
+
+func (server ScampServer) SetPacketHandler(handler uintptr) {
+	syscall.SyscallN(uintptr(setPacketHandlerProc), server.ptr, handler)
+}
+
+func (server ScampServer) AttachSaveStorage() {
+	syscall.SyscallN(uintptr(attachSaveStorageProc), server.ptr)
+}
+
+func (server ScampServer) Tick() {
+	syscall.SyscallN(uintptr(tickProc), server.ptr)
 }

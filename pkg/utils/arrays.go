@@ -1,10 +1,15 @@
 package utils
 
-import "github.com/gorilla/websocket"
+import (
+	"fmt"
+
+	"github.com/gorilla/websocket"
+)
 
 func IndexOfWsClient(array []*websocket.Conn, element *websocket.Conn) uint16 {
 	for i, v := range array {
 		if v == element {
+			fmt.Println(i)
 			return uint16(i)
 		}
 	}

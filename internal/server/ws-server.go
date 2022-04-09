@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -57,8 +58,9 @@ func (s *WsServer) handle(c *gin.Context) {
 		if err != nil {
 			logrus.Println("error read json")
 			logrus.Errorln(err.Error())
+			break
 		}
-
+		fmt.Println(data)
 		s.onMessage(client, &data)
 	}
 }
