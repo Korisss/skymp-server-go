@@ -1,9 +1,10 @@
 package main
 
 import (
-	"log"
 	"os"
 	"os/exec"
+
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -22,13 +23,13 @@ func main() {
 func buildMake() {
 	cmd := exec.Command("go", "build", "-o", "./make.exe", "./tools/make/cmd/app/main.go")
 	if err := cmd.Run(); err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
 }
 
 func build() {
 	cmd := exec.Command("go", "build", "-o", "./build/server.exe", "./cmd/app/main.go")
 	if err := cmd.Run(); err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
 }
